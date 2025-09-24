@@ -1,0 +1,35 @@
+{
+  "name": "koishi-plugin-hereditas",
+  "description": "New beginnings from your old koishi configurations",
+  "version": "0.0.1",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "files": [
+    "lib",
+    "dist"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "chatbot",
+    "koishi",
+    "plugin"
+  ],
+  "peerDependencies": {
+    "@koishijs/console": "^5.28.0",
+    "koishi": "^4.18.3"
+  },
+  "peerDependenciesMeta": {
+    "@koishijs/plugin-console": {
+      "optional": false
+    }
+  },
+  "devDependencies": {
+    "@koishijs/client": "^5.28.0",
+    "@koishijs/plugin-console": "^5.28.0",
+    "@koishijs/plugin-notifier": "^1.2.1",
+    "@types/js-yaml": "^4"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}
