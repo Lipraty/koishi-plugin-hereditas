@@ -1,33 +1,36 @@
-import * as exp from "constants"
-
-export type PluginName = `${string}:${string}`
-
 export interface KoishiSchema {
-  plugins: {
-    [key: PluginName]: Record<string, any>
-  }
-  [key: string]: Record<string, any>
+  plugins: Record<string, any>
+  [key: string]: any
 }
 
-export interface ConfigDiff {
-  key: string // table row key, e.g. group:id/plugin:id
-  plugin: string
-  group: string
-  type: 'added' | 'removed' | 'modified' | 'invariant'
-  changes: ChangeItem[]
+export interface FieldDiff {
+  field: string
+  currentValue: any
+  importedValue: any
+  status: 'added' | 'removed' | 'modified' | 'unchanged'
+  decision?: 'keep' | 'use-imported'
 }
 
-export interface ChangeItem {
-  type: 'added' | 'removed' | 'modified' | 'state'
-  field: string // config item name
-  currentValue: any | null
-  newValue: any | null
-  selected?: boolean
-}
-
-export interface DiffTreeNode {
-  key: string
-  type: 'group' | 'plugin' | 'item'
+export interface PluginInstance {
+  id: string
   name: string
-  status: 'add' | 'remove' | 'modify' | 'invariant'
+  instanceId: string
+  originalGroup?: string
+  importedGroup?: string
+  groupPath?: string[]
+  enabled: boolean
+  current?: Record<string, any>
+  imported?: Record<string, any>
+  status: DiffStatus
+  decision: Decision
+  fieldDiffs?: FieldDiff[]
 }
+
+export interface FlatList extends PluginInstance {
+  selected?: boolean
+  expanded?: boolean
+  advancedMode?: boolean
+}
+
+export type DiffStatus = 'added' | 'modified' | 'deleted' | 'conflict' | 'unchanged'
+export type Decision = 'keep' | 'replace' | 'merge' | 'smart' | 'add' | 'skip' | 'remove' | null

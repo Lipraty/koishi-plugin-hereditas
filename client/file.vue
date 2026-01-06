@@ -19,7 +19,7 @@
   </div>
   <div class="flex mt-2 items-center">
     <kbd>{{ kbdBySystem }} + V</kbd>
-    <p class="flex items-center justify-center">粘贴<code>koishi.yml</code>内容</p>
+    <p class="flex items-center justify-center">粘贴 <code>koishi.yml</code> 内容</p>
     <div class="flex-1"></div>
     <el-button-group class="flex justify-end">
       <el-button size="large" round @click="clearResults" :disabled="!model">清除结果</el-button>
