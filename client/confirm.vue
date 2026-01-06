@@ -275,20 +275,6 @@ const getStatusTagType = (status: string) => {
   }
 }
 
-const selectAll = () => {
-  for (const item of filteredList.value) {
-    if (item.status !== 'unchanged') {
-      item.selected = true
-    }
-  }
-}
-
-const selectNone = () => {
-  for (const item of flatList.value) {
-    item.selected = false
-  }
-}
-
 const updateDecision = (row: FlatList) => {
   // 当插件级别决策变化时，重置高级模式
   if (row.advancedMode && (row.decision === 'keep' || row.decision === 'replace')) {

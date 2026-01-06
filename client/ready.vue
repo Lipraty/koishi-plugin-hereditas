@@ -41,12 +41,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineEmits, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import * as yaml from 'js-yaml'
 import { FlatList } from './schema.type'
 import { buildMergedConfig } from './utils'
-import { store } from '@koishijs/client'
+import { send } from '@koishijs/client'
 
 const emits = defineEmits(['hereditasNext'])
 
@@ -160,6 +160,7 @@ defineExpose({
 })
 
 const applyChanges = async () => {
+  console.log('mergedConfig', mergedConfig.value)
   try {
     await ElMessageBox.confirm(
       '即将应用配置更改。此操作将更新 Koishi 配置文件。确认继续？',
@@ -173,15 +174,16 @@ const applyChanges = async () => {
 
     applying.value = true
 
-    // @ts-ignore
-    await store.updateConfig({
-      plugins: mergedConfig.value,
-    })
+    const result = await send('hereditas/apply', mergedConfig.value)
 
-    ElMessage.success('配置已成功应用！')
-    setTimeout(() => {
-      emits('hereditasNext', 0)
-    }, 1000)
+    if (result) {
+      ElMessage.success('配置已成功应用！')
+      setTimeout(() => {
+        emits('hereditasNext', 0)
+      }, 1000)
+    } else {
+      ElMessage.error('配置应用被取消。')
+    }
   } catch (e) {
     if ((e as any).response?.config) {
       ElMessage.error('应用配置失败，请重试。')
