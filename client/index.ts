@@ -5,7 +5,10 @@ import Main from './main.vue'
 
 declare module '@koishijs/plugin-console' {
   interface Events {
-    'hereditas/apply': (config: KoishiContext.Config) => Promise<boolean>
+    'hereditas/apply': (config: KoishiContext.Config, options?: {
+      forceUpdate?: boolean
+      toRemove?: string[]
+    }) => Promise<boolean>
   }
 }
 

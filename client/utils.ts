@@ -109,6 +109,7 @@ export const diffConfigs = (
         status: 'added',
         decision: null,
         fieldDiffs: buildFieldDiffs(undefined, imp.current),
+        importedEnabled: imp.enabled,
       }
     }
 
@@ -119,6 +120,7 @@ export const diffConfigs = (
         status: 'deleted',
         decision: null,
         fieldDiffs: buildFieldDiffs(curr.current, undefined),
+        importedEnabled: undefined,
       }
     }
 
@@ -137,6 +139,7 @@ export const diffConfigs = (
       decision: null,
       fieldDiffs,
       instanceId: curr!.instanceId || imp!.instanceId,
+      importedEnabled: imp!.enabled,
     }
   })
 
@@ -236,7 +239,7 @@ export const buildMergedConfig = (
   const merged: Record<string, any> = {}
 
   for (const item of flatList) {
-    const { decision, status, current, imported, name, instanceId, enabled, groupPath, fieldDiffs, advancedMode } = item
+    const { decision, status, current, imported, name, instanceId, groupPath, fieldDiffs, advancedMode, finalEnabled } = item
 
     const shouldInclude =
       (status === 'added' && decision === 'add') ||
@@ -248,7 +251,10 @@ export const buildMergedConfig = (
     if (!shouldInclude) continue
 
     let config: any
-    if (decision === 'replace') {
+
+    if (status === 'added') {
+      config = cloneDeep(imported)
+    } else if (decision === 'replace') {
       config = cloneDeep(imported)
     } else if (decision === 'merge' || (advancedMode && fieldDiffs)) {
       config = mergeByFields(current, imported, fieldDiffs)
@@ -258,7 +264,7 @@ export const buildMergedConfig = (
       config = cloneDeep(current)
     }
 
-    setInConfig(merged, groupPath, name, instanceId, config, enabled)
+    setInConfig(merged, groupPath, name, instanceId, config, finalEnabled ?? true)
   }
 
   return merged

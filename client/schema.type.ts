@@ -19,6 +19,7 @@ export interface PluginInstance {
   importedGroup?: string
   groupPath?: string[]
   enabled: boolean
+  importedEnabled?: boolean
   current?: Record<string, any>
   imported?: Record<string, any>
   status: DiffStatus
@@ -30,6 +31,7 @@ export interface FlatList extends PluginInstance {
   selected?: boolean
   expanded?: boolean
   advancedMode?: boolean
+  finalEnabled?: boolean
 }
 
 export type DiffStatus = 'added' | 'modified' | 'deleted' | 'conflict' | 'unchanged'

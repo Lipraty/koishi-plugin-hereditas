@@ -35,12 +35,12 @@
 
       <el-checkbox v-model="hideUnchanged">隐藏未变动</el-checkbox>
       <el-checkbox v-model="alwaysKeepLocal">总是保留本地</el-checkbox>
+      <el-checkbox v-model="forceUpdateAll">强制更新所有插件</el-checkbox>
     </div>
 
     <!-- 差异列表 -->
     <el-table
       :data="filteredList"
-      stripe
       style="width: 100%"
       :row-key="row => row.name"
       v-model:expand-row-keys="expandedKeys"
@@ -55,7 +55,7 @@
               <div class="font-semibold">
                 <div v-if="row.originalGroup" class="text-xs text-gray-400">group:{{ row.originalGroup }}</div>
                 <span v-if="row.originalGroup" style="width: 0.5rem;display: inline-block;"></span>{{ row.name }}
-                <span v-if="row.instanceId !== 'default'" class="text-xs text-gray-200">{{ row.instanceId }}</span>
+                <span v-if="row.instanceId !== 'default'" class="text-xs text-gray-200">:{{ row.instanceId }}</span>
               </div>
             </div>
           </div>
@@ -68,29 +68,45 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" width="200">
+      <el-table-column label="操作" width="280">
         <template #default="{ row }">
-          <el-select v-model="row.decision" size="small" @change="updateDecision(row)">
-            <template v-if="row.status === 'added'">
-              <el-option label="添加" value="add" />
-              <el-option label="跳过" value="skip" />
-            </template>
-            <template v-else-if="row.status === 'deleted'">
-              <el-option label="保留" value="keep" />
-              <el-option label="删除" value="remove" />
-            </template>
-            <template v-else>
-              <el-option label="跳过" value="keep" />
-              <el-option label="覆盖" value="replace" />
-              <el-option label="合并" value="smart" />
-            </template>
-          </el-select>
+          <div class="flex items-center gap-2">
+            <el-select v-model="row.decision" size="small" @change="updateDecision(row)" class="flex-1">
+              <template v-if="row.status === 'added'">
+                <el-option label="添加" value="add" />
+                <el-option label="跳过" value="skip" />
+              </template>
+              <template v-else-if="row.status === 'deleted'">
+                <el-option label="保留" value="keep" />
+                <el-option label="删除" value="remove" />
+              </template>
+              <template v-else>
+                <el-option label="跳过" value="keep" />
+                <el-option label="覆盖" value="replace" />
+                <el-option label="合并" value="smart" />
+              </template>
+            </el-select>
+            <el-switch
+              v-model="row.finalEnabled"
+              size="small"
+              :active-text="row.finalEnabled ? '启用' : '禁用'"
+              :disabled="row.status === 'deleted' && row.decision === 'remove'"
+            />
+          </div>
         </template>
       </el-table-column>
 
       <el-table-column type="expand" width="50">
         <template #default="{ row }">
           <div v-if="row.fieldDiffs && row.fieldDiffs.length > 0" class="p-4 space-y-4">
+            <!-- 分组信息 -->
+            <div v-if="row.originalGroup || row.importedGroup" class="text-sm bg-blue-50 p-2 rounded dark:bg-gray-800">
+              <strong>分组:</strong>
+              <span v-if="row.originalGroup">本地: {{ row.originalGroup }}</span>
+              <span v-if="row.importedGroup && row.importedGroup !== row.originalGroup" class="ml-2">
+                导入: {{ row.importedGroup }} → 将使用本地分组
+              </span>
+            </div>
             <!-- 模式切换 -->
             <div class="flex items-center justify-between mb-4">
               <el-switch
@@ -102,13 +118,11 @@
                 {{ row.advancedMode ? '配置单一字段' : '整体配置' }}
               </span>
             </div>
-
             <!-- 字段级对比 -->
             <el-table :data="row.fieldDiffs" stripe size="small" border>
               <el-table-column label="字段名" prop="field" width="150" />
-
               <template v-if="priority === 'local'">
-                <el-table-column label="本地值" min-width="200">
+                <el-table-column label="本地值" min-width="150">
                   <template #default="{ row: field }">
                     <span v-if="field.currentValue === undefined" class="text-gray-400 italic">未设置</span>
                     <code v-else class="text-xs">{{ formatValue(field.currentValue) }}</code>
@@ -144,28 +158,19 @@
                 </template>
               </el-table-column>
 
-              <el-table-column v-if="row.advancedMode" label="操作" width="150">
+              <el-table-column v-if="row.advancedMode" label="操作" width="100">
                 <template #default="{ row: field }">
                   <el-select
                     v-model="field.decision"
                     size="small"
                     :disabled="field.status === 'unchanged'"
                   >
-                    <el-option label="保持本地" value="keep" />
-                    <el-option label="使用导入" value="use-imported" />
+                    <el-option label="跳过" value="keep" />
+                    <el-option label="覆盖" value="use-imported" />
                   </el-select>
                 </template>
               </el-table-column>
             </el-table>
-
-            <!-- 分组信息 -->
-            <div v-if="row.originalGroup || row.importedGroup" class="text-sm bg-blue-50 p-2 rounded">
-              <strong>分组:</strong>
-              <span v-if="row.originalGroup">本地: {{ row.originalGroup }}</span>
-              <span v-if="row.importedGroup && row.importedGroup !== row.originalGroup" class="ml-2">
-                导入: {{ row.importedGroup }} → 将使用本地分组
-              </span>
-            </div>
           </div>
         </template>
       </el-table-column>
@@ -188,7 +193,7 @@ import { store } from '@koishijs/client'
 
 const emits = defineEmits<{
   hereditasNext: [index: number]
-  hereditasData: [data: FlatList[], priority: 'local' | 'import']
+  hereditasData: [data: FlatList[], priority: 'local' | 'import', forceUpdateAll: boolean]
 }>()
 const model = defineModel<string>()
 
@@ -199,6 +204,7 @@ const hideUnchanged = ref(true)
 const priority = ref<'local' | 'import'>('local')
 const expandedKeys = ref<string[]>([])
 const alwaysKeepLocal = ref(true)
+const forceUpdateAll = ref(false)
 
 onMounted(() => {
   try {
@@ -218,6 +224,7 @@ onMounted(() => {
 
     flatList.value = diffConfigs(current, parsed.plugins)
     applyPriority()
+    initializeFinalEnabled()
   } catch (e) {
     emits('hereditasNext', 1)
     ElMessage.error((e as Error).message)
@@ -305,6 +312,23 @@ const applyPriority = () => {
       }
     }
   }
+  initializeFinalEnabled()
+}
+
+const initializeFinalEnabled = () => {
+  for (const item of flatList.value) {
+    if (item.status === 'added') {
+      item.finalEnabled = item.importedEnabled ?? true
+    } else if (item.decision === 'replace') {
+      item.finalEnabled = item.importedEnabled ?? item.enabled
+    } else if (item.decision === 'smart' || item.decision === 'merge') {
+      item.finalEnabled = priority.value === 'import'
+        ? (item.importedEnabled ?? item.enabled)
+        : item.enabled
+    } else {
+      item.finalEnabled = item.enabled
+    }
+  }
 }
 
 const keepExpanded = (row: FlatList) => {
@@ -346,7 +370,7 @@ const getFieldStatusType = (status: string) => {
 }
 
 const nextStep = () => {
-  emits('hereditasData', flatList.value, priority.value)
+  emits('hereditasData', flatList.value, priority.value, forceUpdateAll.value)
   emits('hereditasNext', 3)
 }
 </script>

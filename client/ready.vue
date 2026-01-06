@@ -54,6 +54,7 @@ const flatList = ref<FlatList[]>([])
 const currentConfig = ref<Record<string, any>>({})
 const mergedConfig = ref<Record<string, any>>({})
 const applying = ref(false)
+const forceUpdateAll = ref(false)
 
 const stats = computed(() => {
   const modifiedDecisions = ['replace', 'smart', 'merge']
@@ -152,10 +153,11 @@ const escapeHtml = (str: string) =>
     .replace(/'/g, '&#39;')
 
 defineExpose({
-  setData(data: FlatList[], current: Record<string, any>, priority: 'local' | 'import') {
+  setData(data: FlatList[], current: Record<string, any>, priority: 'local' | 'import', forceUpdate = false) {
     flatList.value = data
     currentConfig.value = current
     mergedConfig.value = buildMergedConfig(current, data, priority)
+    forceUpdateAll.value = forceUpdate
   },
 })
 
@@ -174,7 +176,14 @@ const applyChanges = async () => {
 
     applying.value = true
 
-    const result = await send('hereditas/apply', mergedConfig.value)
+    const toRemove = flatList.value
+      .filter(item => item.status === 'deleted' && item.decision === 'remove')
+      .map(item => item.name)
+
+    const result = await send('hereditas/apply', mergedConfig.value, {
+      forceUpdate: forceUpdateAll.value,
+      toRemove,
+    })
 
     if (result) {
       ElMessage.success('配置已成功应用！')
