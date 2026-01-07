@@ -6,6 +6,8 @@ export default antfu({
     '**/dist/**',
     '**/*.d.ts',
     '**/node_modules/**',
+    '**/.pnp.*',
+    '**/.yarn/**',
   ],
   typescript: {
     overrides: {
@@ -20,4 +22,6 @@ export default antfu({
   vue: false,
   jsonc: false,
   yaml: false,
+}, {
+  files: ['src/**/*.ts', 'client/**/*.ts', 'src/**/*.tsx', 'client/**/*.tsx'],
 })
