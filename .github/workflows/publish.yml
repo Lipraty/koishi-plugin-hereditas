@@ -7,60 +7,61 @@ on:
 
 jobs:
   publish:
+    if: |
+      !contains(github.event.head_commit.message, '[skip ci]') &&
+      !contains(github.event.head_commit.message, '[ci skip]')
     runs-on: ubuntu-latest
     permissions:
-      contents: write
       id-token: write
+      contents: write
 
     steps:
-      - name: Check out
+      - name: Check out Buildplate
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          repository: koikirin/buildplate
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - name: Check out source
+        uses: actions/checkout@v4
         with:
-          node-version: 24
-          registry-url: https://registry.npmjs.org
-
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Set Yarn version
-        run: corepack prepare yarn@4 --activate
+          path: external/source
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get version from tag
         id: version
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
-      - name: Create Koishi environment
-        run: yarn create koishi --cwd /tmp/koishi-env
+      - name: Set up Node
+        uses: actions/setup-node@v4
 
-      - name: Copy plugin to Koishi
-        run: cp -r . /tmp/koishi-env/external/hereditas
-
-      - name: Install dependencies
-        run: cd /tmp/koishi-env && yarn
-        env:
-          YARN_ENABLE_IMMUTABLE_INSTALLS: false
+      - name: Install
+        run: |
+          yarn --no-immutable
+          yarn yakumo prepare
+          yarn yakumo resolution
+          yarn --no-immutable
 
       - name: Update version
-        run: cd /tmp/koishi-env/external/hereditas && yarn bump -v ${{ steps.version.outputs.version }}
+        run: |
+          cd external/source
+          yarn bump -v ${{ steps.version.outputs.version }}
 
       - name: Commit version bump
         run: |
-          cd /tmp/koishi-env
+          cd external/source
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-          git add external/hereditas/package.json
+          git add package.json
           git commit -m "bump version ${{ steps.version.outputs.version }}"
-          git push
+          git push origin HEAD:main
+
+      - name: Check visibility
+        if: github.event.repository.private == true
+        run: yarn config set npmPublishProvenance false
 
       - name: Build
-        run: cd /tmp/koishi-env && yarn build
+        run: yarn build
 
-      - name: Publish to NPM
-        run: cd /tmp/koishi-env/external/hereditas && npm publish --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish
+        run: yarn pub --debug

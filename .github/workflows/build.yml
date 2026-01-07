@@ -10,63 +10,59 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out
+      - name: Check out Buildplate
         uses: actions/checkout@v4
+        with:
+          repository: koikirin/buildplate
+
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          path: external/source
 
       - name: Set up Node
         uses: actions/setup-node@v4
-        with:
-          node-version: 24
-
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Set Yarn version
-        run: corepack prepare yarn@4 --activate
 
       - name: Install
-        run: yarn
-        env:
-          YARN_ENABLE_IMMUTABLE_INSTALLS: false
+        run: |
+          yarn --no-immutable
+          yarn yakumo prepare
+          yarn yakumo resolution
+          yarn --no-immutable
 
       - name: Lint
-        run: yarn lint
+        run: yarn yakumo run source -- lint
 
   build:
     needs: lint
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out
+      - name: Check out Buildplate
         uses: actions/checkout@v4
+        with:
+          repository: koikirin/buildplate
+
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          path: external/source
 
       - name: Set up Node
         uses: actions/setup-node@v4
-        with:
-          node-version: 24
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Set Yarn version
-        run: corepack prepare yarn@4 --activate
-
-      - name: Create Koishi environment
-        run: yarn create koishi --cwd /tmp/koishi-env
-
-      - name: Copy plugin to Koishi
-        run: cp -r . /tmp/koishi-env/external/hereditas
-
-      - name: Install dependencies
-        run: cd /tmp/koishi-env && yarn
-        env:
-          YARN_ENABLE_IMMUTABLE_INSTALLS: false
+      - name: Install
+        run: |
+          yarn --no-immutable
+          yarn yakumo prepare
+          yarn yakumo resolution
+          yarn --no-immutable
 
       - name: Build
-        run: cd /tmp/koishi-env && yarn build
+        run: yarn build
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
-          path: /tmp/koishi-env/external/hereditas/lib
+          path: external/source/lib
