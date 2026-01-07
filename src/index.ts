@@ -1,7 +1,7 @@
 import { copyFile, mkdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { Context, Schema } from 'koishi'
-import { } from '@koishijs/client'
+import { } from '@koishijs/plugin-console'
 import { } from '@koishijs/plugin-market'
 
 declare module '@koishijs/plugin-console' {
