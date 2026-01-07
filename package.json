@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-hereditas",
   "description": "New beginnings from your old koishi configurations",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [

@@ -24,7 +24,7 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
         with:
-          path: external/source
+          path: external/hereditas
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -43,13 +43,11 @@ jobs:
           yarn --no-immutable
 
       - name: Update version
-        run: |
-          cd external/source
-          yarn bump -v ${{ steps.version.outputs.version }}
+        run: yarn bump hereditas -v ${{ steps.version.outputs.version }}
 
       - name: Commit version bump
         run: |
-          cd external/source
+          cd external/hereditas
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
           git add package.json
