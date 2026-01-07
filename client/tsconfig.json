@@ -5,7 +5,8 @@
     "target": "esnext",
     "moduleResolution": "node",
     "types": [
-      "@koishijs/client/global"
+      "@koishijs/client/global",
+      "vite/client",
     ]
   },
   "include": [
