@@ -9,6 +9,7 @@
     "dist"
   ],
   "license": "MIT",
+  "packageManager": "yarn@4.3.1",
   "keywords": [
     "chatbot",
     "koishi",

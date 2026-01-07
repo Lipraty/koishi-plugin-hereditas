@@ -23,7 +23,12 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
-          cache: yarn
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Set Yarn version
+        run: corepack prepare yarn@4 --activate
 
       - name: Get version from tag
         id: version
