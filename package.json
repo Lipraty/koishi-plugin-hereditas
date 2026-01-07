@@ -9,6 +9,13 @@
     "dist"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lipraty/koishi-plugin-hereditas.git"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
   "packageManager": "yarn@4.3.1",
   "keywords": [
     "chatbot",
