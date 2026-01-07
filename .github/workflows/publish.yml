@@ -42,6 +42,8 @@ jobs:
 
       - name: Install dependencies
         run: cd /tmp/koishi-env && yarn
+        env:
+          YARN_ENABLE_IMMUTABLE_INSTALLS: false
 
       - name: Update version
         run: cd /tmp/koishi-env/external/hereditas && yarn bump -v ${{ steps.version.outputs.version }}
