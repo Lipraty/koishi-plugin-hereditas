@@ -27,6 +27,7 @@ jobs:
           path: external/hereditas
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.ref }}
 
       - name: Get version from tag
         id: version
@@ -34,6 +35,8 @@ jobs:
 
       - name: Set up Node
         uses: actions/setup-node@v4
+        with:
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install
         run: |
@@ -47,14 +50,14 @@ jobs:
 
       - name: Commit version bump
         run: |
-          cd external/hereditas
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
-          git fetch origin main
-          git checkout -B main origin/main
-          git add package.json
-          git commit -m "bump version ${{ steps.version.outputs.version }}"
-          git push origin main
+          git -C external/hereditas config user.email "github-actions[bot]@users.noreply.github.com"
+          git -C external/hereditas config user.name "github-actions[bot]"
+          git -C external/hereditas remote set-branches origin main
+          git -C external/hereditas fetch origin main:main
+          git -C external/hereditas checkout main
+          git -C external/hereditas add package.json
+          git -C external/hereditas commit -m "bump version ${{ steps.version.outputs.version }}"
+          git -C external/hereditas push origin main
 
       - name: Check visibility
         if: github.event.repository.private == true
