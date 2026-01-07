@@ -10,6 +10,7 @@ export default antfu({
   typescript: {
     overrides: {
       'ts/no-namespace': 'off',
+      'ts/no-redeclare': 'off',
       'ts/consistent-type-imports': 'off',
       'ts/ban-ts-comment': 'off',
       'no-console': 'off',

@@ -1,21 +1,28 @@
-import { FlatList, PluginInstance, DiffStatus, FieldDiff } from './schema.type'
+import { DiffStatus, FieldDiff, FlatList, PluginInstance } from './schema.type'
 
-const isEqual = (a: any, b: any): boolean => {
-  if (a === b) return true
-  if (typeof a !== typeof b) return false
-  if (typeof a !== 'object' || a === null || b === null) return false
-  if (Array.isArray(a) !== Array.isArray(b)) return false
+function isEqual(a: any, b: any): boolean {
+  if (a === b)
+    return true
+  if (typeof a !== typeof b)
+    return false
+  if (typeof a !== 'object' || a === null || b === null)
+    return false
+  if (Array.isArray(a) !== Array.isArray(b))
+    return false
 
   const keys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})])
   for (const key of keys) {
-    if (!isEqual(a[key], b[key])) return false
+    if (!isEqual(a[key], b[key]))
+      return false
   }
   return true
 }
 
-const cloneDeep = (obj: any): any => {
-  if (obj === null || typeof obj !== 'object') return obj
-  if (Array.isArray(obj)) return obj.map(cloneDeep)
+function cloneDeep(obj: any): any {
+  if (obj === null || typeof obj !== 'object')
+    return obj
+  if (Array.isArray(obj))
+    return obj.map(cloneDeep)
   const copy: any = {}
   for (const [k, v] of Object.entries(obj)) {
     copy[k] = cloneDeep(v)
@@ -23,19 +30,20 @@ const cloneDeep = (obj: any): any => {
   return copy
 }
 
-const merge = (target: any, source: any): any => {
+function merge(target: any, source: any): any {
   const result = cloneDeep(target)
   for (const key in source) {
     if (typeof source[key] === 'object' && source[key] !== null && typeof result[key] === 'object' && result[key] !== null) {
       result[key] = merge(result[key], source[key])
-    } else {
+    }
+    else {
       result[key] = cloneDeep(source[key])
     }
   }
   return result
 }
 
-export const parsePluginKey = (key: string): { name: string; instanceId: string; enabled: boolean } => {
+export function parsePluginKey(key: string): { name: string, instanceId: string, enabled: boolean } {
   const enabled = !key.startsWith('~')
   const cleanKey = enabled ? key : key.slice(1)
   const parts = cleanKey.split(':')
@@ -48,16 +56,17 @@ export const parsePluginKey = (key: string): { name: string; instanceId: string;
   return { name: cleanKey, instanceId: 'default', enabled }
 }
 
-export const buildPluginKey = (name: string, instanceId: string, enabled: boolean): string => {
+export function buildPluginKey(name: string, instanceId: string, enabled: boolean): string {
   const key = instanceId === 'default' ? name : `${name}:${instanceId}`
   return enabled ? key : `~${key}`
 }
 
-export const flattenConfig = (config: Record<string, any>, groupPath: string[] = []): PluginInstance[] => {
+export function flattenConfig(config: Record<string, any>, groupPath: string[] = []): PluginInstance[] {
   const instances: PluginInstance[] = []
 
   for (const [key, value] of Object.entries(config)) {
-    if (key.startsWith('$')) continue
+    if (key.startsWith('$'))
+      continue
 
     if (key.startsWith('group:')) {
       const rawName = key.slice('group:'.length)
@@ -65,7 +74,8 @@ export const flattenConfig = (config: Record<string, any>, groupPath: string[] =
       const groupName = labelName || rawName
       const subInstances = flattenConfig(value, [...groupPath, groupName])
       instances.push(...subInstances)
-    } else {
+    }
+    else {
       const { name, instanceId, enabled } = parsePluginKey(key)
       const displayGroup = groupPath.length ? groupPath.join('/') : undefined
       instances.push({
@@ -85,10 +95,7 @@ export const flattenConfig = (config: Record<string, any>, groupPath: string[] =
   return instances
 }
 
-export const diffConfigs = (
-  currentConfig: Record<string, any>,
-  importedConfig: Record<string, any>,
-): FlatList[] => {
+export function diffConfigs(currentConfig: Record<string, any>, importedConfig: Record<string, any>): FlatList[] {
   const current = flattenConfig(currentConfig)
   const imported = flattenConfig(importedConfig)
 
@@ -96,7 +103,7 @@ export const diffConfigs = (
   const importedMap = mapByName(imported)
   const allNames = new Set([...currentMap.keys(), ...importedMap.keys()])
 
-  const result: FlatList[] = Array.from(allNames).map(name => {
+  const result: FlatList[] = Array.from(allNames).map((name) => {
     const curr = currentMap.get(name)
     const imp = importedMap.get(name)
 
@@ -146,7 +153,7 @@ export const diffConfigs = (
   return result
 }
 
-const mapByName = (items: PluginInstance[]): Map<string, PluginInstance> => {
+function mapByName(items: PluginInstance[]): Map<string, PluginInstance> {
   const map = new Map<string, PluginInstance>()
   for (const item of items) {
     if (!map.has(item.name)) {
@@ -156,12 +163,13 @@ const mapByName = (items: PluginInstance[]): Map<string, PluginInstance> => {
   return map
 }
 
-const buildFieldDiffs = (current: any, imported: any): FieldDiff[] => {
-  if (!current && !imported) return []
+function buildFieldDiffs(current: any, imported: any): FieldDiff[] {
+  if (!current && !imported)
+    return []
 
   const allFields = new Set([
     ...Object.keys(current || {}),
-    ...Object.keys(imported || {})
+    ...Object.keys(imported || {}),
   ])
 
   const diffs: FieldDiff[] = []
@@ -173,11 +181,14 @@ const buildFieldDiffs = (current: any, imported: any): FieldDiff[] => {
     let status: 'added' | 'removed' | 'modified' | 'unchanged'
     if (currentValue === undefined) {
       status = 'added'
-    } else if (importedValue === undefined) {
+    }
+    else if (importedValue === undefined) {
       status = 'removed'
-    } else if (isEqual(currentValue, importedValue)) {
+    }
+    else if (isEqual(currentValue, importedValue)) {
       status = 'unchanged'
-    } else {
+    }
+    else {
       status = 'modified'
     }
 
@@ -193,15 +204,16 @@ const buildFieldDiffs = (current: any, imported: any): FieldDiff[] => {
   return diffs
 }
 
-const determineStatus = (fieldDiffs: FieldDiff[]): DiffStatus => {
+function determineStatus(fieldDiffs: FieldDiff[]): DiffStatus {
   if (fieldDiffs.every(d => d.status === 'unchanged')) {
     return 'unchanged'
   }
 
-  const hasConflict = fieldDiffs.some(d => {
+  const hasConflict = fieldDiffs.some((d) => {
     const cv = d.currentValue
     const iv = d.importedValue
-    if (cv === undefined || iv === undefined) return false
+    if (cv === undefined || iv === undefined)
+      return false
     const cvIsObj = typeof cv === 'object' && cv !== null
     const ivIsObj = typeof iv === 'object' && iv !== null
     return cvIsObj !== ivIsObj || Array.isArray(cv) !== Array.isArray(iv)
@@ -210,12 +222,7 @@ const determineStatus = (fieldDiffs: FieldDiff[]): DiffStatus => {
   return hasConflict ? 'conflict' : 'modified'
 }
 
-export const mergeConfigs = (
-  current: any,
-  imported: any,
-  strategy: 'shallow' | 'deep' | 'field-select' = 'deep',
-  selectedFields?: string[],
-): any => {
+export function mergeConfigs(current: any, imported: any, strategy: 'shallow' | 'deep' | 'field-select' = 'deep', selectedFields?: string[]): any {
   if (strategy === 'shallow') {
     return { ...current, ...imported }
   }
@@ -231,36 +238,37 @@ export const mergeConfigs = (
   return merge(cloneDeep(current), cloneDeep(imported))
 }
 
-export const buildMergedConfig = (
-  currentConfig: Record<string, any>,
-  flatList: FlatList[],
-  priority: 'local' | 'import' = 'local',
-): Record<string, any> => {
+export function buildMergedConfig(currentConfig: Record<string, any>, flatList: FlatList[], priority: 'local' | 'import' = 'local'): Record<string, any> {
   const merged: Record<string, any> = {}
 
   for (const item of flatList) {
     const { decision, status, current, imported, name, instanceId, groupPath, fieldDiffs, advancedMode, finalEnabled } = item
 
-    const shouldInclude =
-      (status === 'added' && decision === 'add') ||
-      (status === 'deleted' && decision === 'keep') ||
-      (status === 'modified' && (decision === 'keep' || decision === 'replace' || decision === 'merge' || decision === 'smart')) ||
-      (status === 'conflict' && (decision === 'keep' || decision === 'replace' || decision === 'merge' || decision === 'smart')) ||
-      (status === 'unchanged')
+    const shouldInclude
+      = (status === 'added' && decision === 'add')
+        || (status === 'deleted' && decision === 'keep')
+        || (status === 'modified' && (decision === 'keep' || decision === 'replace' || decision === 'merge' || decision === 'smart'))
+        || (status === 'conflict' && (decision === 'keep' || decision === 'replace' || decision === 'merge' || decision === 'smart'))
+        || (status === 'unchanged')
 
-    if (!shouldInclude) continue
+    if (!shouldInclude)
+      continue
 
     let config: any
 
     if (status === 'added') {
       config = cloneDeep(imported)
-    } else if (decision === 'replace') {
+    }
+    else if (decision === 'replace') {
       config = cloneDeep(imported)
-    } else if (decision === 'merge' || (advancedMode && fieldDiffs)) {
+    }
+    else if (decision === 'merge' || (advancedMode && fieldDiffs)) {
       config = mergeByFields(current, imported, fieldDiffs)
-    } else if (decision === 'smart') {
+    }
+    else if (decision === 'smart') {
       config = mergeSmart(current, imported, priority)
-    } else {
+    }
+    else {
       config = cloneDeep(current)
     }
 
@@ -270,12 +278,9 @@ export const buildMergedConfig = (
   return merged
 }
 
-const mergeByFields = (
-  current: any,
-  imported: any,
-  fieldDiffs?: FieldDiff[],
-): any => {
-  if (!fieldDiffs || !current) return imported || current
+function mergeByFields(current: any, imported: any, fieldDiffs?: FieldDiff[]): any {
+  if (!fieldDiffs || !current)
+    return imported || current
 
   const result = cloneDeep(current)
 
@@ -289,9 +294,11 @@ const mergeByFields = (
   return result
 }
 
-const mergeSmart = (current: any, imported: any, priority: 'local' | 'import'): any => {
-  if (!current) return cloneDeep(imported)
-  if (!imported) return cloneDeep(current)
+function mergeSmart(current: any, imported: any, priority: 'local' | 'import'): any {
+  if (!current)
+    return cloneDeep(imported)
+  if (!imported)
+    return cloneDeep(current)
 
   // 深合并，按优先级覆盖冲突
   const result = cloneDeep(current)
@@ -313,7 +320,8 @@ const mergeSmart = (current: any, imported: any, priority: 'local' | 'import'): 
     const bothObj = typeof cv === 'object' && cv !== null && typeof iv === 'object' && iv !== null
     if (bothObj && !Array.isArray(cv) && !Array.isArray(iv)) {
       result[key] = mergeSmart(cv, iv, priority)
-    } else {
+    }
+    else {
       result[key] = priority === 'import' ? cloneDeep(iv) : cloneDeep(cv)
     }
   }
@@ -321,14 +329,7 @@ const mergeSmart = (current: any, imported: any, priority: 'local' | 'import'): 
   return result
 }
 
-const setInConfig = (
-  config: Record<string, any>,
-  groupPath: string[] | undefined,
-  name: string,
-  instanceId: string,
-  value: any,
-  enabled: boolean,
-): void => {
+function setInConfig(config: Record<string, any>, groupPath: string[] | undefined, name: string, instanceId: string, value: any, enabled: boolean): void {
   let target = config
 
   if (groupPath && groupPath.length) {

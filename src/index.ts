@@ -1,8 +1,8 @@
+import { copyFile, mkdir } from 'node:fs/promises'
+import { resolve } from 'node:path'
 import { Context, Schema } from 'koishi'
 import { } from '@koishijs/client'
-import { resolve } from 'node:path'
 import { } from '@koishijs/plugin-market'
-import { copyFile, mkdir } from 'node:fs/promises'
 
 declare module '@koishijs/plugin-console' {
   interface Events {
@@ -29,10 +29,12 @@ export function flattenPluginNames(plugins: Record<string, any>): string[] {
   const names = new Set<string>()
 
   const walk = (node: any) => {
-    if (!node || typeof node !== 'object') return
+    if (!node || typeof node !== 'object')
+      return
 
     for (const [key, value] of Object.entries(node)) {
-      if (key.startsWith('$')) continue
+      if (key.startsWith('$'))
+        continue
 
       if (key.startsWith('group:')) {
         walk(value)
@@ -81,7 +83,8 @@ export async function apply(ctx: Context) {
             ? [name.replace(/^(@[^/]+)\/(.+)$/, '$1/koishi-plugin-$2')]
             : [`@koishijs/plugin-${name}`, `koishi-plugin-${name}`]
           const result = await ctx.installer.findVersion(pkgName)
-          if (!result) return null
+          if (!result)
+            return null
 
           if (toRemoveSet.has(name)) {
             return Object.fromEntries(Object.keys(result).map(pkg => [pkg, '']))
@@ -89,7 +92,8 @@ export async function apply(ctx: Context) {
           return result
         }))
         for (const entry of entries) {
-          if (entry) Object.assign(deps, entry)
+          if (entry)
+            Object.assign(deps, entry)
         }
       }
       // step 3: install/uninstall packages
@@ -103,7 +107,8 @@ export async function apply(ctx: Context) {
       // step 5: reload
       ctx.loader.fullReload()
       return true
-    } catch (error) {
+    }
+    catch (error) {
       console.error(error)
       return false
     }
