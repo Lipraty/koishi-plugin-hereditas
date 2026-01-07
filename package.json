@@ -15,18 +15,11 @@
     "plugin"
   ],
   "peerDependencies": {
-    "@koishijs/console": "^5.28.0",
-    "koishi": "^4.15.0"
-  },
-  "peerDependenciesMeta": {
-    "@koishijs/plugin-console": {
-      "optional": false
-    }
+    "@koishijs/plugin-console": "^5.30.1",
+    "koishi": "^4.18.3"
   },
   "devDependencies": {
-    "@koishijs/client": "^5.28.0",
-    "@koishijs/plugin-console": "^5.28.0",
-    "@koishijs/plugin-notifier": "^1.2.1",
+    "@koishijs/client": "^5.30.1",
     "@types/js-yaml": "^4"
   },
   "dependencies": {

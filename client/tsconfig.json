@@ -2,11 +2,12 @@
   "compilerOptions": {
     "rootDir": ".",
     "module": "esnext",
-    "target": "esnext",
     "moduleResolution": "node",
     "types": [
-      "@koishijs/client/global",
-    ],
+      "@koishijs/client/global"
+    ]
   },
-  "include": ["."],
+  "include": [
+    "."
+  ]
 }

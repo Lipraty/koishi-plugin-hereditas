@@ -70,10 +70,7 @@ export async function apply(ctx: Context) {
       // step 1: backup current config
       await mkdir(backupDir, { recursive: true })
       await copyFile(currentCfgPath, resolve(backupDir, `koishi.yml`))
-      // step 2: update config
-      const updatedConfig = { ...ctx.root.scope.config, plugins: config || {} }
-      ctx.root.scope.update(updatedConfig)
-      // step 3: build unified dependency map
+      // step 2: build unified dependency map
       const deps: Record<string, string> = {}
       const toRemoveSet = new Set(toRemove)
       const allNames = [...new Set([...toInstall, ...toRemove])]
@@ -95,12 +92,16 @@ export async function apply(ctx: Context) {
           if (entry) Object.assign(deps, entry)
         }
       }
-      // step 4: execute all operations in one call
+      // step 3: install/uninstall packages
       if (Object.keys(deps).length > 0) {
-        const result = await ctx.installer.install(deps, true)
-        console.log('Installation result:', result)
-        ctx.loader.fullReload()
+        const code = await ctx.installer.install(deps, true)
+        console.log('Installation code:', code)
       }
+      // step 4: update config
+      const updatedConfig = { ...ctx.root.scope.config, plugins: config || {} }
+      ctx.root.scope.update(updatedConfig)
+      // step 5: reload
+      ctx.loader.fullReload()
       return true
     } catch (error) {
       console.error(error)
