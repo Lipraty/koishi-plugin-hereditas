@@ -14,13 +14,21 @@
     "koishi",
     "plugin"
   ],
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
   "peerDependencies": {
     "@koishijs/plugin-console": "^5.30.1",
     "koishi": "^4.18.3"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "^2.21.0",
     "@koishijs/client": "^5.30.1",
-    "@types/js-yaml": "^4"
+    "@types/js-yaml": "^4",
+    "eslint": "^9.0.0",
+    "typescript": "^5.0.0"
   },
   "dependencies": {
     "js-yaml": "^4.1.0"

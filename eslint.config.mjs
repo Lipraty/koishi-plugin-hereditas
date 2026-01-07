@@ -1,0 +1,10 @@
+import antfu from '@antfu/eslint-config'
+
+export default antfu({
+  typescript: {
+    overrides: {
+      'ts/no-namespace': 'off',
+      'ts/consistent-type-imports': 'off',
+    },
+  },
+})
