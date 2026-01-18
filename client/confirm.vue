@@ -211,7 +211,7 @@ onMounted(() => {
     // @ts-ignore
     const current = store?.config?.plugins || {}
     const parsed = yaml.load(model.value, {
-      schema: yaml.FAILSAFE_SCHEMA,
+      schema: yaml.JSON_SCHEMA,
       json: true,
       onWarning: (message) => {
         ElMessage.warning(message)
